@@ -117,7 +117,7 @@ def get_default_pt_dataset(
     return ds
 
 
-def get_default_rt_dose_dataset(current_study, rtplan, dose_summation_type, beam_number):
+def get_default_rt_dose_dataset(current_study, rtplan, dose_summation_type, beam_number, bitsAllocated):
     DT = "%04i%02i%02i" % datetime.datetime.now().timetuple()[:3]
     TM = "%02i%02i%02i" % datetime.datetime.now().timetuple()[3:6]
     if 'StudyTime' not in current_study:
@@ -138,7 +138,7 @@ def get_default_rt_dose_dataset(current_study, rtplan, dose_summation_type, beam
     get_general_image_module(ds, DT, TM)
     get_image_plane_module(ds)
     get_multi_frame_module(ds)
-    get_rt_dose_module(ds, rtplan, dose_summation_type, beam_number)
+    get_rt_dose_module(ds, rtplan, dose_summation_type, beam_number, bitsAllocated)
     return ds
 
 def get_default_rt_structure_set_dataset(ref_images, current_study):
@@ -413,15 +413,15 @@ def get_multi_frame_module(ds):
     ds.FrameIncrementPointer = dicom.datadict.Tag(dicom.datadict.tag_for_name("GridFrameOffsetVector"))
 
 
-def get_rt_dose_module(ds, rtplan=None, doseSummationType="PLAN", beam_number=None):
+def get_rt_dose_module(ds, rtplan=None, doseSummationType="PLAN", beam_number=None, BitsAllocated=16):
     # Type 1C on PixelData
     ds.SamplesPerPixel = 1
     ds.DoseGridScaling = 1.0
     ds.SamplesPerPixel = 1
     ds.PhotometricInterpretation = "MONOCHROME2"
-    ds.BitsAllocated = 16
-    ds.BitsStored = 16
-    ds.HighBit = 15
+    ds.BitsAllocated = BitsAllocated
+    ds.BitsStored = BitsAllocated
+    ds.HighBit = BitsAllocated-1
     ds.PixelRepresentation = 0
 
     # Type 1
@@ -1133,12 +1133,12 @@ def build_rt_plan(current_study, isocenter, structure_set=None, **kwargs):
             setattr(rp, k, v)
     return rp
 
-def build_rt_dose(dose_data, voxel_size, center, current_study, rtplan, dose_grid_scaling, dose_summation_type, beam_number, **kwargs):
+def build_rt_dose(dose_data, voxel_size, center, current_study, rtplan, dose_grid_scaling, dose_summation_type, beam_number, bitsAllocated, **kwargs):
     nVoxels = dose_data.shape
     FoRuid = get_current_study_uid('FrameOfReferenceUID', current_study)
     studyuid = get_current_study_uid('StudyUID', current_study)
     seriesuid = generate_uid()
-    rd = get_default_rt_dose_dataset(current_study, rtplan, dose_summation_type, beam_number)
+    rd = get_default_rt_dose_dataset(current_study, rtplan, dose_summation_type, beam_number, bitsAllocated)
     rd.SeriesInstanceUID = seriesuid
     rd.StudyInstanceUID = studyuid
     rd.FrameOfReferenceUID = FoRuid

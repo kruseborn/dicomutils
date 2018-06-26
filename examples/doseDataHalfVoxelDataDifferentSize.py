@@ -69,7 +69,7 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     print "rtdose beam 1"
     rtdose1 = sb.build_dose(planbuilder = None,
         num_voxels=[31, 31, 31],
-        voxel_size=[1, 1, 1],
+        voxel_size=[1, 2, 1],
         row_direction=row_direction,
         column_direction=column_direction)
     rtdose1.dose_grid_scaling = 0.5
@@ -98,7 +98,7 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     print "rtdose beam 2"
     rtdose2 = sb.build_dose(planbuilder = None,
         num_voxels=[31, 31, 31],
-        voxel_size=[1, 1, 1],
+        voxel_size=[1, 2, 1],
         row_direction=row_direction,
         column_direction=column_direction)
     rtdose2.dose_grid_scaling = 0.5
@@ -128,7 +128,7 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     print "rtdose beam 3"
     rtdose3 = sb.build_dose(planbuilder = None,
         num_voxels=[31, 31, 31],
-        voxel_size=[1, 1, 1],
+        voxel_size=[1, 2, 1],
         row_direction=row_direction,
         column_direction=column_direction)
     rtdose3.dose_grid_scaling = 0.5
@@ -157,7 +157,7 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     print "rtdose beam 4"
     rtdose4 = sb.build_dose(planbuilder = None,
         num_voxels=[31, 31, 31],
-        voxel_size=[1, 1, 1],
+        voxel_size=[1, 2, 1],
         row_direction=row_direction,
         column_direction=column_direction)
     rtdose4.dose_grid_scaling = 0.5
@@ -186,7 +186,7 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     print "rtdose plan dose"
     rtdosePlan = sb.build_dose(planbuilder = None,
         num_voxels=[31, 31, 31],
-        voxel_size=[1, 1, 1],
+        voxel_size=[1, 2, 1],
         row_direction=row_direction,
         column_direction=column_direction)
     rtdosePlan.dose_grid_scaling = 0.5

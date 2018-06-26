@@ -1,7 +1,7 @@
 import shutil
 import numpy
 try:
-    shutil.rmtree("doseGridBigUnsigned")
+    shutil.rmtree("doseDifferentMax")
 except:
     pass
 
@@ -15,11 +15,11 @@ reload(modules)
 from builders import StudyBuilder
 
 import os
-if not os.path.exists("doseGridBigUnsigned"):
-    os.mkdir("doseGridBigUnsigned")
+if not os.path.exists("doseDifferentMax"):
+    os.mkdir("doseDifferentMax")
 
 def build_orientation(patient_position, column_direction, row_direction, frame_of_reference_uid = None):
-    sb = StudyBuilder(patient_position=patient_position, patient_id="doseGridBigUnsigned", patient_name="doseGridBigUnsigned", patient_birthdate = "20121212")
+    sb = StudyBuilder(patient_position=patient_position, patient_id="doseDifferentMax", patient_name="doseDifferentMax", patient_birthdate = "20121212")
     if frame_of_reference_uid != None:
         sb.current_study['FrameOfReferenceUID'] = frame_of_reference_uid
 
@@ -50,6 +50,12 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     rtstruct.add_sphere(radius=4, center = [-8,-8,-8], name='x=y=z=-8', interpreted_type='SITE')
     rtstruct.build()
 
+    print "rtstruct 2 not connected to the plan"
+    rtstruct2 = sb.build_structure_set(ct)
+    rtstruct2.add_external_box()
+    rtstruct2.add_sphere(radius=4, center = [0,0,0], name='center sphere', interpreted_type='SITE')
+    rtstruct2.build()
+
     print "rtplan"
     rtplan = sb.build_static_plan(structure_set = rtstruct, sad=20)
     b1 = rtplan.build_beam(gantry_angle = 0, collimator_angle=30, meterset = 100)
@@ -59,38 +65,50 @@ def build_orientation(patient_position, column_direction, row_direction, frame_o
     rtplan.build()
 
     print "rtdose beam 1"
-    rtdose1 = sb.build_dose(planbuilder = rtplan)
-    rtdose1.dose_grid_scaling = 1
+    rtdose1 = sb.build_dose(planbuilder = None,
+        num_voxels=[7, 9, 5],
+        voxel_size=[3, 1, 1],
+        row_direction=row_direction,
+        column_direction=column_direction)
+    rtdose1.dose_grid_scaling = 0.01
     rtdose1.dose_summation_type = "BEAM"
     rtdose1.beam_number = 1
 
-    rtdose1.add_box(size = [4,4,4], center = [0,-12, 0], stored_value = 65535) #100%
-    rtdose1.add_box(size = [4,4,4], center = [0, -8, 0], stored_value = 39322) #60%
-    rtdose1.add_box(size = [4,4,4], center = [0, -4, 0], stored_value = 38665) #59%
-    rtdose1.add_box(size = [4,4,4], center = [0,  0, 0], stored_value = 32768) #50%
-    rtdose1.add_box(size = [4,4,4], center = [0,  4, 0], stored_value = 32112) #49%
-    rtdose1.add_box(size = [4,4,4], center = [0,  8, 0], stored_value = 15728) #24%
-    rtdose1.add_box(size = [4,4,4], center = [0, 12, 0], stored_value = 0)     #0%
+    rtdose1.add_box(size = [3,1,1], center = [0,-3, 0], stored_value = 100) 
+    rtdose1.add_box(size = [3,1,1], center = [0, -2, 0], stored_value = 91) 
+    rtdose1.add_box(size = [3,1,1], center = [0, -1, 0], stored_value = 81) 
+    rtdose1.add_box(size = [3,1,1], center = [0,  0, 0], stored_value = 71) 
+    rtdose1.add_box(size = [3,1,1], center = [0,  1, 0], stored_value = 61) 
+    rtdose1.add_box(size = [3,1,1], center = [0,  2, 0], stored_value = 51) 
+    rtdose1.add_box(size = [3,1,1], center = [0, 3, 0], stored_value = 0)     
 
     ############# second beam
     print "rtdose beam 2"
-    rtdose2 = sb.build_dose(planbuilder = rtplan)
-    rtdose2.dose_grid_scaling = 1
+    rtdose2 = sb.build_dose(planbuilder = None,
+        num_voxels=[7, 9, 5],
+        voxel_size=[3, 1, 1],
+        row_direction=row_direction,
+        column_direction=column_direction)
+    rtdose2.dose_grid_scaling = 0.01
     rtdose2.dose_summation_type = "BEAM"
     rtdose2.beam_number = 2
 
-    rtdose2.add_box(size = [4,4,4], center = [-12,0, 0], stored_value = 65535) # 100%
-    rtdose2.add_box(size = [4,4,4], center = [-8, 0, 0], stored_value = 62259) # 95%
-    rtdose2.add_box(size = [4,4,4], center = [-4, 0, 0], stored_value = 61602) # 94%
-    rtdose2.add_box(size = [4,4,4], center = [0,  0, 0], stored_value = 32768) # 50%
-    rtdose2.add_box(size = [4,4,4], center = [4,  0, 0], stored_value = 52429) # 80%
-    rtdose2.add_box(size = [4,4,4], center = [8,  0, 0], stored_value = 51772) # 79%
-    rtdose2.add_box(size = [4,4,4], center = [12, 0, 0], stored_value = 15728) # 24%
+    rtdose2.add_box(size = [3,1,1], center = [-9,0, 0], stored_value = 100)
+    rtdose2.add_box(size = [3,1,1], center = [-6, 0, 0], stored_value = 91)
+    rtdose2.add_box(size = [3,1,1], center = [-3, 0, 0], stored_value = 81)
+    rtdose2.add_box(size = [3,1,1], center = [0,  0, 0], stored_value = 71)
+    rtdose2.add_box(size = [3,1,1], center = [3,  0, 0], stored_value = 61)
+    rtdose2.add_box(size = [3,1,1], center = [6,  0, 0], stored_value = 51)
+    rtdose2.add_box(size = [3,1,1], center = [9, 0, 0], stored_value = 0)
 
     ############# second plan
     print "rtdose plan dose"
-    rtdosePlan = sb.build_dose(planbuilder = rtplan)
-    rtdosePlan.dose_grid_scaling = 1
+    rtdosePlan = sb.build_dose(planbuilder = None,        
+        num_voxels=[7, 9, 5],
+        voxel_size=[3, 1, 1],
+        row_direction=row_direction,
+        column_direction=column_direction)
+    rtdosePlan.dose_grid_scaling = 0.01
     rtdosePlan.dose_summation_type = "PLAN"
     rtdosePlan.beam_number = None
 
@@ -110,6 +128,6 @@ for o in orientations:
         sb = build_orientation(p, o[0], o[1], FoR)
         sbs.append(sb)
         FoR = sbs[0].current_study['FrameOfReferenceUID']
-        d = "doseGridBigUnsigned/" + p + "/" + "%s%s%s%s%s%s" % tuple(x for y in o for x in y)
+        d = "doseDifferentMax/" + p + "/" + "%s%s%s%s%s%s" % tuple(x for y in o for x in y)
         os.makedirs(d)
         sb.write(d)

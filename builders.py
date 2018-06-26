@@ -64,12 +64,17 @@ class ImageBuilder(object):
         else:
             assert 'unknown mode'
 
-    def add_box(self, size, center, stored_value = None, real_value = None, mode = 'set'):
+    
+    def add_box(self, size, center, stored_value = None, real_value = None, mode = 'set', shallPrint=None):
         if real_value != None:
             assert stored_value is None
             stored_value = (real_value - self.rescale_intercept) / self.rescale_slope
         x,y,z = self.mgrid()
+        
         voxels = (abs(x-center[0]) <= size[0]/2.0) * (abs(y-center[1]) <= size[1]/2.0) * (abs(z-center[2]) <= size[2]/2.0)
+        if(shallPrint is not None):
+            print(voxels)
+            
         if mode == 'set':
             self.pixel_array[voxels] = stored_value
         elif mode == 'add':
@@ -143,7 +148,7 @@ class StudyBuilder(object):
         self.seriesbuilders['RTSTRUCT'].append(b)
         return b
 
-    def build_dose(self, planbuilder=None, num_voxels=None, voxel_size=None, center=None, dose_grid_scaling=1.0, column_direction=None, row_direction=None, slice_direction=None):
+    def build_dose(self, planbuilder=None, bits = 16, num_voxels=None, voxel_size=None, center=None, dose_grid_scaling=1.0, column_direction=None, row_direction=None, slice_direction=None):
         if planbuilder is None and len(self.seriesbuilders['RTPLAN']) == 1:
             planbuilder = self.seriesbuilders['RTPLAN'][0]
         if (planbuilder != None
@@ -159,7 +164,7 @@ class StudyBuilder(object):
             if slice_direction is None:
                 slice_direction = images.slice_direction
 
-        b = DoseBuilder(current_study=self.current_study, planbuilder=planbuilder, num_voxels=num_voxels, voxel_size=voxel_size, center=center, dose_grid_scaling=dose_grid_scaling, column_direction=column_direction, row_direction=row_direction, slice_direction=slice_direction)
+        b = DoseBuilder(current_study=self.current_study, planbuilder=planbuilder, bits = bits, num_voxels=num_voxels, voxel_size=voxel_size, center=center, dose_grid_scaling=dose_grid_scaling, column_direction=column_direction, row_direction=row_direction, slice_direction=slice_direction)
         self.seriesbuilders['RTDOSE'].append(b)
         return b
 
@@ -532,12 +537,15 @@ class StructureSetBuilder(object):
 from modules import do_for_all_cps
 
 class DoseBuilder(ImageBuilder):
-    def __init__(self, current_study, planbuilder, num_voxels, voxel_size, center=None, dose_grid_scaling=1.0, column_direction=None, row_direction=None, slice_direction=None):
+    def __init__(self, current_study, planbuilder, num_voxels, voxel_size, bits = 16, center=None, dose_grid_scaling=1.0, column_direction=None, row_direction=None, slice_direction=None):
         self.current_study = current_study
         self.planbuilder = planbuilder
         self.num_voxels = num_voxels
         self.voxel_size = voxel_size
-        self.pixel_array = np.zeros(self.num_voxels, dtype=np.int16)
+        if(bits == 16):
+            self.pixel_array = np.zeros(self.num_voxels, dtype=np.int16)
+        else :
+            self.pixel_array = np.zeros(self.num_voxels, dtype=np.uint32)
         if center is None:
             center = [0,0,0]
         self.center = np.array(center)
@@ -591,7 +599,7 @@ class DoseBuilder(ImageBuilder):
         if self.built:
             return self.datasets
         rd = modules.build_rt_dose(self.pixel_array, self.voxel_size, self.center, self.current_study,
-                                   self.planbuilder.build()[0], self.dose_grid_scaling, self.dose_summation_type, self.beam_number)
+                                   self.planbuilder.build()[0], self.dose_grid_scaling, self.dose_summation_type, self.beam_number, self.BitsAllocated)
         x,y,z = self.mgrid()
         rd.ImagePositionPatient = [x[0,0,0],y[0,0,0],z[0,0,0]]
         rd.ImageOrientationPatient = self.ImageOrientationPatient
